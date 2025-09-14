@@ -1,36 +1,34 @@
-import axios from "axios";
 import type { Prompt } from "./types";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/prompts`;
+export async function getUserPrompts(userId: string, token: string): Promise<Prompt[]> {
+  const res = await fetch(`/api/prompts/by-user/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("Unauthorized");
+  return res.json();
+}
 
-// שליחת prompt ל-AI ולשמירתו ב-DB
 export async function submitPrompt(
   userId: string,
   categoryId: string,
   subCategoryId: string,
-  prompt: string
-): Promise<Prompt> {
-  try {
-    const res = await axios.post<Prompt>(API_URL, {
+  prompt: string,
+  token: string
+): Promise<{ response: string }> {
+  const res = await fetch("/api/prompts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
       user_id: userId,
       category_id: categoryId,
       sub_category_id: subCategoryId,
-      prompt,
-    });
-    return res.data;
-  } catch (error) {
-    console.error("Error sending prompt:", error);
-    throw error;
-  }
+      prompt
+    }),
+  });
+  if (!res.ok) throw new Error("Unauthorized");
+  return res.json();
 }
 
-// קבלת כל ההיסטוריה של משתמש
-export async function getUserPrompts(userId: string): Promise<Prompt[]> {
-  try {
-    const res = await axios.get<Prompt[]>(`${API_URL}/by-user/${userId}`);
-    return res.data;
-  } catch (error) {
-    console.error("Error fetching user prompts:", error);
-    throw error;
-  }
-}

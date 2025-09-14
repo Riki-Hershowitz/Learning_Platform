@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { registerUser } from "../api/users";
 
 interface RegisterPageProps {
-  onRegister: (id: string, name: string) => void;
+  onRegister: (id: string, name: string, token: string) => void;
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
@@ -27,10 +27,12 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
 
     try {
       const user = await registerUser(name, phone);
-      onRegister(user.id, user.name);
-      setError("");
+      if (user && user.id && user.name && user.token) {
+        onRegister(user.id, user.name, user.token);
+      } else {
+        setError("רישום המשתמש נכשל");
+      }
     } catch (err) {
-      console.error(err);
       setError("רישום המשתמש נכשל");
     }
   };

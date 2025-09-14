@@ -6,9 +6,10 @@ import { Link } from "react-router-dom";
 
 interface Props {
   userId: string;
+  token: string;
 }
 
-const DashboardPage: React.FC<Props> = ({ userId }) => {
+const DashboardPage: React.FC<Props> = ({ userId, token }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -16,20 +17,17 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await getCategories();
-      setCategories(data);
-    };
-    fetchCategories();
-  }, []);
+    getCategories(token).then(setCategories);
+  }, [token]);
 
   const handleCategoryChange = async (categoryId: string) => {
     setSelectedCategory(categoryId);
-    const data = await getSubCategories(categoryId);
-    setSubCategories(data);
     setSelectedSubCategory(null);
+    const data = await getSubCategories(categoryId, token);
+    setSubCategories(data);
   };
 
   const handleSendPrompt = async () => {
@@ -39,11 +37,14 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
       setError("יש למלא את כל השדות");
       return;
     }
+    setLoading(true);
     try {
-      const data = await submitPrompt(userId, selectedCategory, selectedSubCategory, prompt);
+      const data = await submitPrompt(userId, selectedCategory, selectedSubCategory, prompt, token);
       setResponse(data.response);
     } catch (e) {
       setError("שגיאה בשליחת הבקשה");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,9 +55,9 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
           היסטוריה
         </Link>
       </nav>
-      <h2 className="heading">למידה חדשה</h2>
+      <h2 className="heading hebrew">למידה חדשה</h2>
       <div>
-        <label className="label">קטגוריה:</label>
+        <label className="label hebrew">קטגוריה:</label>
         <select
           className="input"
           value={selectedCategory || ""}
@@ -72,7 +73,7 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
       </div>
 
       <div>
-        <label className="label">תת-קטגוריה:</label>
+        <label className="label hebrew">תת-קטגוריה:</label>
         <select
           className="input"
           value={selectedSubCategory || ""}
@@ -89,7 +90,7 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
       </div>
 
       <div>
-        <label className="label">מה תרצה ללמוד?</label>
+        <label className="label hebrew">מה תרצה ללמוד?</label>
         <textarea
           className="input"
           style={{ minHeight: 70, resize: "vertical" }}
@@ -97,8 +98,8 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
-        <button className="button" style={{ width: "100%" }} onClick={handleSendPrompt}>
-          שלח
+        <button className="button" style={{ width: "100%" }} onClick={handleSendPrompt} disabled={loading}>
+          {loading ? "יוצר שיעור..." : "שלח"}
         </button>
       </div>
 
@@ -106,7 +107,7 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
 
       {response && (
         <div className="card" style={{ background: "#f9fafc", marginTop: 20 }}>
-          <h3 className="heading" style={{ fontSize: "1.3rem" }}>השיעור שלך:</h3>
+          <h3 className="heading hebrew" style={{ fontSize: "1.3rem" }}>השיעור שלך:</h3>
           <p>{response}</p>
         </div>
       )}

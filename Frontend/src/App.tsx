@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/Dashboard";
@@ -9,24 +9,40 @@ const ADMIN_ID = "68c5f5fa70c96b436110e409";
 
 const App: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null); // חדש
+  const [userName, setUserName] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  // שמירה לאחר הרשמה userId ושם
-  const handleUserRegister = (id: string, name?: string) => {
+  useEffect(() => {
+    const t = localStorage.getItem("token");
+    const n = localStorage.getItem("userName");
+    const i = localStorage.getItem("userId");
+    if (t && n && i) {
+      setToken(t);
+      setUserName(n);
+      setUserId(i);
+      setIsAdmin(i === ADMIN_ID);
+    }
+  }, []);
+
+  const handleUserRegister = (id: string, name: string, token: string) => {
     setUserId(id);
-    setUserName(name || null);
+    setUserName(name);
+    setToken(token);
     setIsAdmin(id === ADMIN_ID);
+    localStorage.setItem("token", token);
+    localStorage.setItem("userName", name);
+    localStorage.setItem("userId", id);
   };
 
-  // כפתור התנתקות
   const handleLogout = () => {
     setUserId(null);
     setUserName(null);
+    setToken(null);
     setIsAdmin(false);
+    localStorage.clear();
   };
 
-  // תפריט ניווט עליון
   const NavBar = () => {
     const location = useLocation();
     if (!userId) return null;
@@ -80,24 +96,24 @@ const App: React.FC = () => {
           <Route
             path="/"
             element={
-              userId
+              userId && token
                 ? isAdmin
                   ? <Navigate to="/admin" replace />
                   : <Navigate to="/dashboard" replace />
-                : <RegisterPage onRegister={(id, name) => handleUserRegister(id, name)} />
+                : <RegisterPage onRegister={handleUserRegister} />
             }
           />
           <Route
             path="/dashboard"
-            element={userId ? <DashboardPage userId={userId} /> : <Navigate to="/" replace />}
+            element={userId && token ? <DashboardPage userId={userId} token={token} /> : <Navigate to="/" replace />}
           />
           <Route
             path="/history"
-            element={userId ? <HistoryPage userId={userId} /> : <Navigate to="/" replace />}
+            element={userId && token ? <HistoryPage userId={userId} token={token} /> : <Navigate to="/" replace />}
           />
           <Route
             path="/admin"
-            element={isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
+            element={isAdmin && token ? <AdminPage token={token} /> : <Navigate to="/" replace />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

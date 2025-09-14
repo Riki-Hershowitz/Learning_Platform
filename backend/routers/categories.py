@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 from db import categories_col
 from models.categories import CategoryCreate, CategoryOut
+from services.jwt_service import verify_token
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
 @router.post("", response_model=CategoryOut)
-def create_category(payload: CategoryCreate):
+def create_category(payload: CategoryCreate, user_id: str = Depends(verify_token)):
     if categories_col.find_one({"name": payload.name}):
         raise HTTPException(400, "Category name already exists")
     res = categories_col.insert_one(payload.model_dump())

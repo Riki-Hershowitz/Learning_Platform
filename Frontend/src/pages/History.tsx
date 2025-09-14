@@ -5,35 +5,51 @@ import { Link } from "react-router-dom";
 
 interface Props {
   userId: string;
+  token: string;
 }
 
-const HistoryPage: React.FC<Props> = ({ userId }) => {
+const HistoryPage: React.FC<Props> = ({ userId, token }) => {
   const [history, setHistory] = useState<Prompt[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      const data = await getUserPrompts(userId);
-      setHistory(data);
-    };
-    fetchHistory();
-  }, [userId]);
+    setLoading(true);
+    setError("");
+    getUserPrompts(userId, token)
+      .then(setHistory) // data is already Prompt[]
+      .catch(() => {
+        setError("שגיאה בטעינת היסטוריה");
+        setHistory([]);
+      })
+      .finally(() => setLoading(false));
+  }, [userId, token]);
 
   return (
     <div className="card" style={{ maxWidth: 600, margin: "3rem auto" }}>
       <nav style={{ marginBottom: 20 }}>
         <Link to="/dashboard" className="button" style={{ fontSize: "1em", padding: "0.5em 1.2em" }}>
-          למד שיעור  
+          דף הבית
         </Link>
       </nav>
-      <h2 className="heading">היסטוריית למידה</h2>
-      {history.length === 0 ? (
+      <h2 className="heading hebrew">היסטוריית למידה</h2>
+      {loading ? (
+        <div style={{ textAlign: "center", margin: 30 }}>טוען...</div>
+      ) : error ? (
+        <div className="alert-error">{error}</div>
+      ) : history.length === 0 ? (
         <div className="alert-error" style={{ background: "#ffe6e6" }}>אין היסטוריה עדיין.</div>
       ) : (
         <ul style={{ padding: 0, listStyle: "none" }}>
           {history.map((item) => (
             <li key={item.id} className="card" style={{ background: "#f9fafc", marginBottom: 16 }}>
-              <p><strong>Prompt:</strong> {item.prompt}</p>
-              <p><strong>Response:</strong> {item.response}</p>
+              <p>
+                <strong>קטגוריה:</strong> <span className="small">{item.category_id}</span>
+                {" | "}
+                <strong>תת-קטגוריה:</strong> <span className="small">{item.sub_category_id}</span>
+              </p>
+              <p><strong>Prompt:</strong> <span className="english">{item.prompt}</span></p>
+              <p><strong>Response:</strong> <span className="english">{item.response}</span></p>
               <p className="small"><em>נוצר בתאריך: {new Date(item.created_at).toLocaleString()}</em></p>
             </li>
           ))}
