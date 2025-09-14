@@ -11,8 +11,5 @@ class Config:
     # מפתח ל-OpenAI 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
-    # סוד להצפנה / JWT
-    SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
-
     # מצב DEBUG (ברירת מחדל False)
     # DEBUG = os.getenv("DEBUG", "False").lower() == "true"
