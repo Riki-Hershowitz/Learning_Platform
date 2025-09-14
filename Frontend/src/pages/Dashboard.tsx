@@ -15,6 +15,7 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -32,23 +33,36 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
   };
 
   const handleSendPrompt = async () => {
-    if (!selectedCategory || !selectedSubCategory || !prompt) return;
-    const data = await submitPrompt(userId, selectedCategory, selectedSubCategory, prompt);
-    setResponse(data.response);
+    setError("");
+    setResponse("");
+    if (!selectedCategory || !selectedSubCategory || !prompt) {
+      setError("יש למלא את כל השדות");
+      return;
+    }
+    try {
+      const data = await submitPrompt(userId, selectedCategory, selectedSubCategory, prompt);
+      setResponse(data.response);
+    } catch (e) {
+      setError("שגיאה בשליחת הבקשה");
+    }
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <nav>
-        <Link to="/history">History</Link>
+    <div className="card" style={{ maxWidth: 600, margin: "3rem auto" }}>
+      <nav style={{ marginBottom: 20 }}>
+        <Link to="/history" className="button" style={{ fontSize: "1em", padding: "0.5em 1.2em" }}>
+          היסטוריה
+        </Link>
       </nav>
-
-      <h2>Dashboard</h2>
-
+      <h2 className="heading">למידה חדשה</h2>
       <div>
-        <label>Category:</label>
-        <select onChange={(e) => handleCategoryChange(e.target.value)}>
-          <option value="">Select</option>
+        <label className="label">קטגוריה:</label>
+        <select
+          className="input"
+          value={selectedCategory || ""}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+        >
+          <option value="">בחר</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
@@ -58,12 +72,14 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
       </div>
 
       <div>
-        <label>SubCategory:</label>
+        <label className="label">תת-קטגוריה:</label>
         <select
+          className="input"
+          value={selectedSubCategory || ""}
           onChange={(e) => setSelectedSubCategory(e.target.value)}
           disabled={!selectedCategory}
         >
-          <option value="">Select</option>
+          <option value="">בחר</option>
           {subCategories.map((sub) => (
             <option key={sub.id} value={sub.id}>
               {sub.name}
@@ -73,17 +89,24 @@ const DashboardPage: React.FC<Props> = ({ userId }) => {
       </div>
 
       <div>
+        <label className="label">מה תרצה ללמוד?</label>
         <textarea
-          placeholder="Enter your prompt"
+          className="input"
+          style={{ minHeight: 70, resize: "vertical" }}
+          placeholder="הכנס נושא או שאלה"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
-        <button onClick={handleSendPrompt}>Send</button>
+        <button className="button" style={{ width: "100%" }} onClick={handleSendPrompt}>
+          שלח
+        </button>
       </div>
 
+      {error && <div className="alert-error">{error}</div>}
+
       {response && (
-        <div style={{ marginTop: 20, border: "1px solid black", padding: 10 }}>
-          <h3>Lesson:</h3>
+        <div className="card" style={{ background: "#f9fafc", marginTop: 20 }}>
+          <h3 className="heading" style={{ fontSize: "1.3rem" }}>השיעור שלך:</h3>
           <p>{response}</p>
         </div>
       )}

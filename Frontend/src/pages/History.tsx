@@ -19,18 +19,26 @@ const HistoryPage: React.FC<Props> = ({ userId }) => {
   }, [userId]);
 
   return (
-    <div style={{ padding: 20 }}>
-      <nav>
-        <Link to="/dashboard">Dashboard</Link>
+    <div className="card" style={{ maxWidth: 600, margin: "3rem auto" }}>
+      <nav style={{ marginBottom: 20 }}>
+        <Link to="/dashboard" className="button" style={{ fontSize: "1em", padding: "0.5em 1.2em" }}>
+          למד שיעור  
+        </Link>
       </nav>
-      <h2>History</h2>
-      {history.map((item) => (
-        <div key={item.id} style={{ border: "1px solid gray", margin: 10, padding: 10 }}>
-          <p><strong>Prompt:</strong> {item.prompt}</p>
-          <p><strong>Response:</strong> {item.response}</p>
-          <p><em>Created at: {item.created_at}</em></p>
-        </div>
-      ))}
+      <h2 className="heading">היסטוריית למידה</h2>
+      {history.length === 0 ? (
+        <div className="alert-error" style={{ background: "#ffe6e6" }}>אין היסטוריה עדיין.</div>
+      ) : (
+        <ul style={{ padding: 0, listStyle: "none" }}>
+          {history.map((item) => (
+            <li key={item.id} className="card" style={{ background: "#f9fafc", marginBottom: 16 }}>
+              <p><strong>Prompt:</strong> {item.prompt}</p>
+              <p><strong>Response:</strong> {item.response}</p>
+              <p className="small"><em>נוצר בתאריך: {new Date(item.created_at).toLocaleString()}</em></p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
