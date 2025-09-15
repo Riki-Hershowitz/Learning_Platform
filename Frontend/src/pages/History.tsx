@@ -1,3 +1,7 @@
+/**
+ * דף היסטוריית למידה אישית
+ * מציג למשתמש את כל השאלות ששלח והשיעורים שקיבל מה-AI
+ */
 import React, { useEffect, useState } from "react";
 import { getUserPrompts } from "../api/prompts";
 import type { Prompt } from "../api/types";
@@ -9,15 +13,17 @@ interface Props {
 }
 
 const HistoryPage: React.FC<Props> = ({ userId, token }) => {
+  // מצבי הרכיב - נתונים, טעינה ושגיאות
   const [history, setHistory] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
+  // טעינת היסטוריית הלמידה של המשתמש בטעינת הרכיב
   useEffect(() => {
     setLoading(true);
     setError("");
     getUserPrompts(userId, token)
-      .then(setHistory) // data is already Prompt[]
+      .then(setHistory)
       .catch(() => {
         setError("שגיאה בטעינת היסטוריה");
         setHistory([]);

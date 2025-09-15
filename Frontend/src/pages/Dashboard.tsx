@@ -1,3 +1,7 @@
+/**
+ * דף למידה חדשה - מאפשר למשתמשים לבחור קטגוריה, תת-קטגוריה ולשלוח שאלה ל-AI
+ * המערכת מחזירה שיעור מותאם אישית ושומרת אותו בהיסטוריה
+ */
 import React, { useEffect, useState } from "react";
 import { getCategories, getSubCategories } from "../api/categories";
 import { submitPrompt } from "../api/prompts";
@@ -10,6 +14,7 @@ interface Props {
 }
 
 const DashboardPage: React.FC<Props> = ({ userId, token }) => {
+  // מצבי הרכיב - נתונים ובחירות המשתמש
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -19,24 +24,35 @@ const DashboardPage: React.FC<Props> = ({ userId, token }) => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  // טעינת קטגוריות בטעינת הרכיב
   useEffect(() => {
     getCategories(token).then(setCategories);
   }, [token]);
 
+  // טיפול בשינוי קטגוריה - טוען תת-קטגוריות רלוונטיות
   const handleCategoryChange = async (categoryId: string) => {
     setSelectedCategory(categoryId);
     setSelectedSubCategory(null);
-    const data = await getSubCategories(categoryId, token);
-    setSubCategories(data);
+    setSubCategories([]);
+    
+    try {
+      const data = await getSubCategories(categoryId, token);
+      setSubCategories(data);
+    } catch (error) {
+      setError('שגיאה בטעינת תת-קטגוריות');
+    }
   };
 
+  // שליחת שאלה ל-AI וקבלת שיעור
   const handleSendPrompt = async () => {
     setError("");
     setResponse("");
+    
     if (!selectedCategory || !selectedSubCategory || !prompt) {
       setError("יש למלא את כל השדות");
       return;
     }
+    
     setLoading(true);
     try {
       const data = await submitPrompt(userId, selectedCategory, selectedSubCategory, prompt, token);

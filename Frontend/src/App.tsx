@@ -1,3 +1,7 @@
+/**
+ * רכיב האפליקציה הראשי - מנהל את הניווט, האימות ומצב המשתמש
+ * כולל ניתוב בין דפים שונים ובדיקת הרשאות מנהל
+ */
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import RegisterPage from "./pages/RegisterPage";
@@ -5,14 +9,17 @@ import DashboardPage from "./pages/Dashboard";
 import HistoryPage from "./pages/History";
 import AdminPage from "./pages/AdminDashboard";
 
+// מזהה המנהל הקבוע במערכת
 const ADMIN_ID = "68c5f5fa70c96b436110e409";
 
 const App: React.FC = () => {
+  // מצב המשתמש הנוכחי במערכת
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
+  // טעינת נתוני המשתמש מהאחסון המקומי בטעינת האפליקציה
   useEffect(() => {
     const t = localStorage.getItem("token");
     const n = localStorage.getItem("userName");
@@ -25,6 +32,7 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // טיפול בהרשמה/התחברות משתמש חדש
   const handleUserRegister = (id: string, name: string, token: string) => {
     setUserId(id);
     setUserName(name);
@@ -35,6 +43,7 @@ const App: React.FC = () => {
     localStorage.setItem("userId", id);
   };
 
+  // התנתקות משתמש ומחיקת נתונים
   const handleLogout = () => {
     setUserId(null);
     setUserName(null);
@@ -43,6 +52,7 @@ const App: React.FC = () => {
     localStorage.clear();
   };
 
+  // רכיב סרגל הניווט העליון
   const NavBar = () => {
     const location = useLocation();
     if (!userId) return null;

@@ -1,15 +1,24 @@
+"""
+קונפיגורציה כללית של האפליקציה
+מנהל את כל ההגדרות ומשתני הסביבה של המערכת
+"""
 import os
 from dotenv import load_dotenv
 
-# טוען משתנים מה-.env
+# טעינת משתני סביבה מקובץ .env
 load_dotenv()
 
 class Config:
-    # חיבור ל-MongoDB
+    """כלאס קונפיגורציה מרכזי לכל ההגדרות האפליקציה"""
+    
+    # מחרוזת חיבור ל-MongoDB Atlas
     MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/learning_platform")
 
-    # מפתח ל-OpenAI 
+    # מפתח API של OpenAI ליצירת שיעורים
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-
-    # מצב DEBUG (ברירת מחדל False)
-    # DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+    
+    # מפתח סודי ל-JWT אימות
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev_secret_key")
+    
+    # מצב פיתוח - מציג מידע נוסף לדיבאג
+    DEBUG = os.getenv("DEBUG", "False").lower() == "true"

@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from "react";
+/**
+ * לוח בקרה למנהל המערכת
+ * מאפשר צפייה בכל המשתמשים והשאלות שלהם עם חיפוש ופייגינג
+ */
+import React, { useEffect, useState, useMemo } from "react";
 import { getAllUsers, getAllPrompts } from "../api/admin";
 import type { User, Prompt } from "../api/types";
 
@@ -7,6 +11,7 @@ interface AdminPageProps {
 }
 
 const AdminPage: React.FC<AdminPageProps> = ({ token }) => {
+  // מצבי הרכיב - נתונים, ניווט וחיפוש
   const [users, setUsers] = useState<User[]>([]);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [tab, setTab] = useState<"users" | "prompts">("users");
@@ -14,6 +19,7 @@ const AdminPage: React.FC<AdminPageProps> = ({ token }) => {
   const [search, setSearch] = useState("");
   const pageSize = 10;
 
+  // טעינת נתוני המנהל בטעינת הרכיב
   useEffect(() => {
     const fetchAdminData = async () => {
       const usersData = await getAllUsers(token);
@@ -24,12 +30,14 @@ const AdminPage: React.FC<AdminPageProps> = ({ token }) => {
     fetchAdminData();
   }, [token]);
 
-  // Filtering
-  const filteredUsers = users.filter(u =>
-    u.name.includes(search) || u.phone.includes(search)
+  // סינון מוטב עם useMemo לביצועים
+  const filteredUsers = useMemo(() => 
+    users.filter(u => u.name.includes(search) || u.phone.includes(search)),
+    [users, search]
   );
-  const filteredPrompts = prompts.filter(p =>
-    p.prompt.includes(search) || p.response.includes(search)
+  const filteredPrompts = useMemo(() => 
+    prompts.filter(p => p.prompt.includes(search) || p.response.includes(search)),
+    [prompts, search]
   );
 
   const pagedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
@@ -111,9 +119,11 @@ const AdminPage: React.FC<AdminPageProps> = ({ token }) => {
   );
 };
 
+// רכיב פייגינג לניווט בין עמודים
 const Pagination: React.FC<{ page: number; pageSize: number; total: number; onPage: (p: number) => void }> = ({ page, pageSize, total, onPage }) => {
   const pages = Math.ceil(total / pageSize);
   if (pages <= 1) return null;
+  
   return (
     <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "1.5em 0" }}>
       <button className="button" disabled={page === 1} onClick={() => onPage(page - 1)}>הקודם</button>

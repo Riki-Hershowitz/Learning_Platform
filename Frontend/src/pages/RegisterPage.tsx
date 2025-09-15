@@ -1,17 +1,28 @@
+/**
+ * דף הרשמה והתחברות למערכת
+ * מאפשר למשתמשים חדשים להירשם או למשתמשים קיימים להתחבר
+ */
 import React, { useState } from "react";
 import { registerUser } from "../api/users";
+
+// תבנית ולידציה למספר טלפון: 6-20 ספרות
+const PHONE_VALIDATION_PATTERN = /^\d{6,20}$/;
 
 interface RegisterPageProps {
   onRegister: (id: string, name: string, token: string) => void;
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
+  // מצבי הרכיב - נתוני הטופס ושגיאות
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<string>("");
 
+  // טיפול בהרשמה/התחברות עם ולידציה וטיפול בשגיאות
   const handleRegister = async () => {
     setError("");
+    
+    // ולידציה בסיסית של שדות הקלט
     if (!name.trim()) {
       setError("יש להזין שם");
       return;
@@ -20,7 +31,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
       setError("יש להזין טלפון");
       return;
     }
-    if (!/^\d{6,20}$/.test(phone)) {
+    if (!PHONE_VALIDATION_PATTERN.test(phone)) {
       setError("הטלפון חייב להכיל 6-20 ספרות");
       return;
     }
@@ -30,10 +41,25 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
       if (user && user.id && user.name && user.token) {
         onRegister(user.id, user.name, user.token);
       } else {
-        setError("רישום המשתמש נכשל");
+        setError("שגיאה: לא התקבלו נתונים תקינים מהשרת");
       }
-    } catch (err) {
-      setError("רישום המשתמש נכשל");
+    } catch (err: any) {
+      const serverMessage = err?.response?.data?.detail || err?.response?.data?.message;
+      
+      // טיפול מתקדם בשגיאות לפי סוג
+      if (err?.response?.status === 400) {
+        if (serverMessage === "User already exists") {
+          setError("משתמש עם מספר טלפון זה כבר קיים");
+        } else {
+          setError("שגיאה: נתונים לא תקינים");
+        }
+      } else if (err?.response?.status === 500) {
+        setError("שגיאת שרת: אנא נסה שוב מאוחר יותר");
+      } else if (err?.code === 'ERR_NETWORK') {
+        setError("שגיאת רשת: בדוק את החיבור לאינטרנט");
+      } else {
+        setError(serverMessage || `שגיאה ברישום: ${err?.message || 'אנא נסה שוב'}`);
+      }
     }
   };
 
